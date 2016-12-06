@@ -8,10 +8,12 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tbruyelle.rxpermissions.RxPermissions;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -20,7 +22,9 @@ import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 public class MainActivity extends AppCompatActivity {
 
     private final static int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
-
+    private final static int PICK_FILE_REQUEST_CODE = 2122;
+    @Bind(R.id.file_name)
+    TextView tvPath;
     private RxPermissions rxPermissions;
 
     @Override
@@ -33,9 +37,29 @@ public class MainActivity extends AppCompatActivity {
         rxPermissions = new RxPermissions(this);
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
+            if (!canDrawOverlays()) {
+                Toast.makeText(this,
+                               "Required permission is not granted. Please restart the app and grant required "
+                                       + "permission.",
+                               Toast.LENGTH_LONG).show();
+            } else {
+                startService();
+            }
+        } else if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
+            final String path = data.getDataString();
+            tvPath.setText(path);
+        }
+    }
+
     @OnClick(R.id.pick_file)
     public void clickPickFile() {
-
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
     }
 
     @OnClick(R.id.start)
@@ -57,20 +81,17 @@ public class MainActivity extends AppCompatActivity {
         stopService();
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
-            if (!canDrawOverlays()) {
-                Toast.makeText(this, "Required permission is not granted. Please restart the app and grant required permission.", Toast.LENGTH_LONG).show();
-            } else {
-                startService();
-            }
-        }
-    }
-
     private void startService() {
-        startService(new Intent(this, OverdrawService.class));
+        final String path = tvPath.getText().toString();
+        final String noPath = getResources().getString(R.string.pick_a_file);
+
+        final Intent serviceIntent = new Intent(this, OverdrawService.class);
+
+        if (!path.equals(noPath)) {
+            serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
+        }
+
+        startService(serviceIntent);
     }
 
     private void stopService() {
