@@ -8,6 +8,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +17,7 @@ import com.tbruyelle.rxpermissions.RxPermissions;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import timber.log.Timber;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
@@ -66,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     public void clickStart() {
         rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(granted -> {
+                    final boolean canDraw = canDrawOverlays();
+                    Timber.d("%s - %s", granted, canDraw);
+
                     if (!granted || !canDrawOverlays()) {
                         Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
                         startActivityForResult(createRequiredPermissionIntent(), REQUIRED_PERMISSION_REQUEST_CODE);
