@@ -67,11 +67,11 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.start)
     void clickStart() {
         rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
-                .subscribe(granted -> {
+                .subscribe(alertWindowPermissionGranted -> {
                     final boolean canDraw = canDrawOverlays();
-                    Timber.d("%s - %s", granted, canDraw);
+                    Timber.d("%s - %s", alertWindowPermissionGranted, canDraw);
 
-                    if (!granted || !canDrawOverlays()) {
+                    if (isPermissionDenied(alertWindowPermissionGranted)) {
                         Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
                         startActivityForResult(createRequiredPermissionIntent(),
                                 REQUIRED_PERMISSION_REQUEST_CODE);
@@ -110,6 +110,13 @@ public class MainActivity extends AppCompatActivity {
                     Uri.parse("package:" + this.getPackageName()));
         }
         return null;
+    }
+
+    private boolean isPermissionDenied(boolean rxPermissionGranted) {
+        if (isMarshmallowOrHigher()) {
+            return !canDrawOverlays();
+        }
+        return !rxPermissionGranted;
     }
 
     @TargetApi(Build.VERSION_CODES.M)
