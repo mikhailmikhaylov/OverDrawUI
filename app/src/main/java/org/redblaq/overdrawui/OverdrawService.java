@@ -4,13 +4,20 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.f2prateek.rx.preferences.RxSharedPreferences;
 import com.squareup.picasso.Picasso;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 public class OverdrawService extends Service {
 
@@ -19,6 +26,9 @@ public class OverdrawService extends Service {
     private static final int FOREGROUND_ID = 999;
 
     private OverdrawView overdrawView;
+    private ImageView overdrawImage;
+
+    private CompositeSubscription compositeSub = new CompositeSubscription();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -30,6 +40,17 @@ public class OverdrawService extends Service {
         }
 
         initOverdraw(filePath);
+
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final RxSharedPreferences rxPrefs = RxSharedPreferences.create(prefs);
+
+        final Subscription sub = rxPrefs
+                .getFloat(Constants.PREFS_TRANSPARENCY)
+                .asObservable()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(v -> overdrawImage.setAlpha(v),
+                        Timber::e);
+        compositeSub.add(sub);
 
         final PendingIntent pendingIntent = createPendingIntent();
         final Notification notification = createNotification(pendingIntent);
@@ -44,6 +65,7 @@ public class OverdrawService extends Service {
         destroyOverdraw();
         stopForeground(true);
 
+        compositeSub.clear();
         logServiceEnded();
     }
 
@@ -57,13 +79,13 @@ public class OverdrawService extends Service {
 
         overdrawView = new OverdrawView(this);
 
-        final ImageView image = overdrawView.getImage();
-        Picasso.with(this).load(filePath).into(image);
-        image.setAlpha(0.5f);
+        overdrawImage = overdrawView.getImage();
+        Picasso.with(this).load(filePath).into(overdrawImage);
+        overdrawImage.setAlpha(0.5f);
 
         final int px = (int) (24 * Resources.getSystem().getDisplayMetrics().density);
 
-        image.setPadding(0, -px, 0, 0);
+        overdrawImage.setPadding(0, -px, 0, 0);
     }
 
     private void destroyOverdraw() {

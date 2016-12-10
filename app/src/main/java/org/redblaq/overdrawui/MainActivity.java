@@ -3,19 +3,24 @@ package org.redblaq.overdrawui;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
+import com.f2prateek.rx.preferences.RxSharedPreferences;
 import com.tbruyelle.rxpermissions.RxPermissions;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
 import static org.redblaq.overdrawui.OverdrawPermissionsUtil.canDrawOverlays;
 import static org.redblaq.overdrawui.OverdrawPermissionsUtil.createRequiredPermissionIntent;
@@ -35,7 +40,14 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.stop)
     Button bStopService;
 
+    @Bind(R.id.transparency)
+    SeekBar sbTransparency;
+
     private RxPermissions rxPermissions;
+    private SharedPreferences prefs;
+    private RxSharedPreferences rxPrefs;
+
+    private CompositeSubscription compositeSub = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +57,20 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         rxPermissions = new RxPermissions(this);
+
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        rxPrefs = RxSharedPreferences.create(prefs);
+
+        sbTransparency.setOnSeekBarChangeListener(seekBarListener);
+
+        bindToPrefs();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        compositeSub.clear();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -65,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
             tvPath.setText(path);
             bStartService.setVisibility(View.VISIBLE);
             bStopService.setVisibility(View.VISIBLE);
+            sbTransparency.setVisibility(View.VISIBLE);
         }
     }
 
@@ -77,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.start)
     void clickStart() {
-        rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
+        final Subscription sub = rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(alertWindowPermissionGranted -> {
                     if (isPermissionDenied(alertWindowPermissionGranted, this)) {
                         Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
@@ -85,14 +112,24 @@ public class MainActivity extends AppCompatActivity {
                                 REQUIRED_PERMISSION_REQUEST_CODE);
                         return;
                     }
-
                     startService();
                 }, error -> Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show());
+        compositeSub.add(sub);
     }
 
     @OnClick(R.id.stop)
     void clickStop() {
         stopService();
+    }
+
+    private void bindToPrefs() {
+        final Subscription sub = rxPrefs
+                .getFloat(Constants.PREFS_TRANSPARENCY)
+                .asObservable()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(v -> sbTransparency.setProgress((int) (v * 100)),
+                        Timber::e);
+        compositeSub.add(sub);
     }
 
     private void startService() {
@@ -111,4 +148,22 @@ public class MainActivity extends AppCompatActivity {
     private void stopService() {
         stopService(new Intent(this, OverdrawService.class));
     }
+
+    private final SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            Timber.d("SEEKBAR: %d, %s", i, b);
+            if (b) {
+                prefs.edit().putFloat(Constants.PREFS_TRANSPARENCY, i / 100f).apply();
+            }
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+        }
+    };
 }
