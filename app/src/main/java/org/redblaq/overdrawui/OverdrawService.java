@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -61,7 +59,7 @@ public class OverdrawService extends Service {
 
         final ImageView image = overdrawView.getImage();
         Picasso.with(this).load(filePath).into(image);
-        image.setAlpha(50);
+        image.setAlpha(0.5f);
 
         final int px = (int) (24 * Resources.getSystem().getDisplayMetrics().density);
 
