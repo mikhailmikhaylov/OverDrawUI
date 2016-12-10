@@ -3,9 +3,7 @@ package org.redblaq.overdrawui;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -16,9 +14,10 @@ import com.tbruyelle.rxpermissions.RxPermissions;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import timber.log.Timber;
 
-import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
+import static org.redblaq.overdrawui.OverdrawPermissionsUtil.canDrawOverlays;
+import static org.redblaq.overdrawui.OverdrawPermissionsUtil.createRequiredPermissionIntent;
+import static org.redblaq.overdrawui.OverdrawPermissionsUtil.isPermissionDenied;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
-            if (!canDrawOverlays()) {
+            if (!canDrawOverlays(this)) {
                 Toast.makeText(this,
                         "Required permission is not granted. Please restart the app and grant "
                                 + "required "
@@ -68,12 +67,9 @@ public class MainActivity extends AppCompatActivity {
     void clickStart() {
         rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(alertWindowPermissionGranted -> {
-                    final boolean canDraw = canDrawOverlays();
-                    Timber.d("%s - %s", alertWindowPermissionGranted, canDraw);
-
-                    if (isPermissionDenied(alertWindowPermissionGranted)) {
+                    if (isPermissionDenied(alertWindowPermissionGranted, this)) {
                         Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
-                        startActivityForResult(createRequiredPermissionIntent(),
+                        startActivityForResult(createRequiredPermissionIntent(this),
                                 REQUIRED_PERMISSION_REQUEST_CODE);
                         return;
                     }
@@ -102,29 +98,5 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopService() {
         stopService(new Intent(this, OverdrawService.class));
-    }
-
-    private Intent createRequiredPermissionIntent() {
-        if (isMarshmallowOrHigher()) {
-            return new Intent(ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + this.getPackageName()));
-        }
-        return null;
-    }
-
-    private boolean isPermissionDenied(boolean rxPermissionGranted) {
-        if (isMarshmallowOrHigher()) {
-            return !canDrawOverlays();
-        }
-        return !rxPermissionGranted;
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean canDrawOverlays() {
-        return !isMarshmallowOrHigher() || Settings.canDrawOverlays(this);
-    }
-
-    private boolean isMarshmallowOrHigher() {
-        return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 }
