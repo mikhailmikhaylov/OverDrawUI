@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +25,16 @@ public class MainActivity extends AppCompatActivity {
 
     private final static int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
     private final static int PICK_FILE_REQUEST_CODE = 2122;
+
     @Bind(R.id.file_name)
     TextView tvPath;
+
+    @Bind(R.id.start)
+    Button bStartService;
+
+    @Bind(R.id.stop)
+    Button bStopService;
+
     private RxPermissions rxPermissions;
 
     @Override
@@ -53,12 +63,14 @@ public class MainActivity extends AppCompatActivity {
         } else if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
             final String path = data.getDataString();
             tvPath.setText(path);
+            bStartService.setVisibility(View.VISIBLE);
+            bStopService.setVisibility(View.VISIBLE);
         }
     }
 
     @OnClick(R.id.pick_file)
     void clickPickFile() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
     }
