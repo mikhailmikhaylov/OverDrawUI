@@ -8,7 +8,6 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,9 +44,10 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
             if (!canDrawOverlays()) {
                 Toast.makeText(this,
-                               "Required permission is not granted. Please restart the app and grant required "
-                                       + "permission.",
-                               Toast.LENGTH_LONG).show();
+                        "Required permission is not granted. Please restart the app and grant "
+                                + "required "
+                                + "permission.",
+                        Toast.LENGTH_LONG).show();
             } else {
                 startService();
             }
@@ -58,14 +58,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.pick_file)
-    public void clickPickFile() {
+    void clickPickFile() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
     }
 
     @OnClick(R.id.start)
-    public void clickStart() {
+    void clickStart() {
         rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(granted -> {
                     final boolean canDraw = canDrawOverlays();
@@ -73,7 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
                     if (!granted || !canDrawOverlays()) {
                         Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
-                        startActivityForResult(createRequiredPermissionIntent(), REQUIRED_PERMISSION_REQUEST_CODE);
+                        startActivityForResult(createRequiredPermissionIntent(),
+                                REQUIRED_PERMISSION_REQUEST_CODE);
                         return;
                     }
 
@@ -82,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.stop)
-    public void clickStop() {
+    void clickStop() {
         stopService();
     }
 
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     private Intent createRequiredPermissionIntent() {
         if (isMarshmallowOrHigher()) {
             return new Intent(ACTION_MANAGE_OVERLAY_PERMISSION,
-                              Uri.parse("package:" + this.getPackageName()));
+                    Uri.parse("package:" + this.getPackageName()));
         }
         return null;
     }
