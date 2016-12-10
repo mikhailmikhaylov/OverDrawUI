@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.start)
     void clickStart() {
+        clickStop();
         final Subscription sub = rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(alertWindowPermissionGranted -> {
                     if (isPermissionDenied(alertWindowPermissionGranted, this)) {
