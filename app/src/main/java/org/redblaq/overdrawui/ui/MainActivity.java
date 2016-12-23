@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.ui;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -17,14 +17,17 @@ import com.tbruyelle.rxpermissions.RxPermissions;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import org.redblaq.overdrawui.overdraw.OverdrawService;
+import org.redblaq.overdrawui.R;
+import org.redblaq.overdrawui.app.Constants;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.canDrawOverlays;
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.createRequiredPermissionIntent;
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.isPermissionDenied;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.canDrawOverlays;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.createRequiredPermissionIntent;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.isPermissionDenied;
 
 public class MainActivity extends AppCompatActivity {
 

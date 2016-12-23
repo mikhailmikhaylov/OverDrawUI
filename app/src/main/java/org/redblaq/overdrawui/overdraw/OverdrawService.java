@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.overdraw;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -14,6 +14,9 @@ import android.widget.Toast;
 
 import com.f2prateek.rx.preferences.RxSharedPreferences;
 import com.squareup.picasso.Picasso;
+import org.redblaq.overdrawui.R;
+import org.redblaq.overdrawui.app.Constants;
+import org.redblaq.overdrawui.ui.MainActivity;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
@@ -21,7 +24,7 @@ import timber.log.Timber;
 
 public class OverdrawService extends Service {
 
-    static final String ARG_FILE_PATH = "file-path";
+    public static final String ARG_FILE_PATH = "file-path";
 
     private static final int FOREGROUND_ID = 999;
 

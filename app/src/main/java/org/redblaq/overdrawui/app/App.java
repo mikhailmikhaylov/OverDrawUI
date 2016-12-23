@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.app;
 
 import android.app.Application;
 

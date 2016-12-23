@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.overdraw;
 
 import android.content.Context;
 import android.graphics.PixelFormat;

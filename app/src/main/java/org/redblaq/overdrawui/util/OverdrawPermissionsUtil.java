@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.util;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -9,12 +9,12 @@ import android.provider.Settings;
 
 import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
-final class OverdrawPermissionsUtil {
+public final class OverdrawPermissionsUtil {
 
     private OverdrawPermissionsUtil() {
     }
 
-    static Intent createRequiredPermissionIntent(Context context) {
+    public static Intent createRequiredPermissionIntent(Context context) {
         if (isMarshmallowOrHigher()) {
             return new Intent(ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + context.getPackageName()));
@@ -22,7 +22,7 @@ final class OverdrawPermissionsUtil {
         return null;
     }
 
-    static boolean isPermissionDenied(boolean rxPermissionGranted, Context context) {
+    public static boolean isPermissionDenied(boolean rxPermissionGranted, Context context) {
         if (isMarshmallowOrHigher()) {
             return !canDrawOverlays(context);
         }
@@ -30,7 +30,7 @@ final class OverdrawPermissionsUtil {
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    static boolean canDrawOverlays(Context context) {
+    public static boolean canDrawOverlays(Context context) {
         return !isMarshmallowOrHigher() || Settings.canDrawOverlays(context);
     }
 
