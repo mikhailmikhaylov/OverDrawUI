@@ -11,6 +11,9 @@ import static android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION;
 
 public final class OverdrawPermissionsUtil {
 
+    public static final int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
+    public static final int PICK_FILE_REQUEST_CODE = 2122;
+
     private OverdrawPermissionsUtil() {
     }
 

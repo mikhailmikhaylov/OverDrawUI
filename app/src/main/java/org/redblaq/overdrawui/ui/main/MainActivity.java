@@ -24,14 +24,9 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.canDrawOverlays;
-import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.createRequiredPermissionIntent;
-import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.isPermissionDenied;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
 public class MainActivity extends AppCompatActivity {
-
-    private final static int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
-    private final static int PICK_FILE_REQUEST_CODE = 2122;
 
     @Bind(R.id.file_name) TextView tvPath;
     @Bind(R.id.start) Button bStartService;
@@ -39,10 +34,8 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
-
     private Prefs prefs;
-
-    private CompositeSubscription compositeSub = new CompositeSubscription();
+    private CompositeSubscription composite = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        compositeSub.clear();
+        composite.clear();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -88,15 +81,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnClick(R.id.pick_file)
-    void clickPickFile() {
+    @OnClick(R.id.pick_file) void clickPickFile() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
     }
 
-    @OnClick(R.id.start)
-    void clickStart() {
+    @OnClick(R.id.start) void clickStart() {
         clickStop();
         final Subscription sub = rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(alertWindowPermissionGranted -> {
@@ -108,11 +99,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                     startService();
                 }, error -> Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show());
-        compositeSub.add(sub);
+        composite.add(sub);
     }
 
-    @OnClick(R.id.stop)
-    void clickStop() {
+    @OnClick(R.id.stop) void clickStop() {
         stopService();
     }
 
@@ -121,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(v -> sbTransparency.setProgress((int) (v * 100)),
                         Timber::e);
-        compositeSub.add(sub);
+        composite.add(sub);
     }
 
     private void startService() {
@@ -149,19 +139,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+        @Override public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             if (b) {
                 prefs.updateTransparency(i);
             }
         }
 
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
+        @Override public void onStartTrackingTouch(SeekBar seekBar) {
         }
 
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
+        @Override public void onStopTrackingTouch(SeekBar seekBar) {
         }
     };
 }
