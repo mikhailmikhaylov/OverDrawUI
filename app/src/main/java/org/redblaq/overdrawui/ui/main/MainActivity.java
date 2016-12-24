@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
 
+        inject();
         bindToPrefs();
     }
 
