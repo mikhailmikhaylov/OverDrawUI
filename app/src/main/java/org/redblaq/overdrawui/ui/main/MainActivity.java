@@ -33,17 +33,10 @@ public class MainActivity extends AppCompatActivity {
     private final static int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
     private final static int PICK_FILE_REQUEST_CODE = 2122;
 
-    @Bind(R.id.file_name)
-    TextView tvPath;
-
-    @Bind(R.id.start)
-    Button bStartService;
-
-    @Bind(R.id.stop)
-    Button bStopService;
-
-    @Bind(R.id.transparency)
-    SeekBar sbTransparency;
+    @Bind(R.id.file_name) TextView tvPath;
+    @Bind(R.id.start) Button bStartService;
+    @Bind(R.id.stop) Button bStopService;
+    @Bind(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
 
