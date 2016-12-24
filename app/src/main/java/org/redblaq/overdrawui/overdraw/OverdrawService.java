@@ -15,7 +15,7 @@ import org.redblaq.overdrawui.R;
 import org.redblaq.overdrawui.app.App;
 import org.redblaq.overdrawui.di.Container;
 import org.redblaq.overdrawui.repository.Prefs;
-import org.redblaq.overdrawui.ui.MainActivity;
+import org.redblaq.overdrawui.ui.main.MainActivity;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
