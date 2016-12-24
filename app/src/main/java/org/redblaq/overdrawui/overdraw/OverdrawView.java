@@ -1,4 +1,4 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.overdraw;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-public class OverdrawView extends View {
+class OverdrawView extends View {
 
     private Context context;
     private WindowManager manager;
@@ -16,7 +16,7 @@ public class OverdrawView extends View {
     private ImageView imageView;
     private ImageView controlView;
 
-    public OverdrawView(Context context) {
+    OverdrawView(Context context) {
         super(context);
 
         this.context = context;
