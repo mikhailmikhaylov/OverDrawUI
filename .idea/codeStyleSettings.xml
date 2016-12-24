@@ -10,6 +10,7 @@
           <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
         </XML>
         <codeStyleSettings language="JAVA">
+          <option name="KEEP_SIMPLE_METHODS_IN_ONE_LINE" value="true" />
           <option name="METHOD_ANNOTATION_WRAP" value="0" />
           <option name="FIELD_ANNOTATION_WRAP" value="1" />
         </codeStyleSettings>
