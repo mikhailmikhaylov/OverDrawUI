@@ -16,17 +16,13 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import org.redblaq.overdrawui.app.App;
 import org.redblaq.overdrawui.di.Container;
-import org.redblaq.overdrawui.overdraw.OverdrawService;
 import org.redblaq.overdrawui.R;
-import org.redblaq.overdrawui.repository.Prefs;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainView {
 
     @Bind(R.id.file_name) TextView tvPath;
     @Bind(R.id.start) Button bStartService;
@@ -34,11 +30,11 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
-    private Prefs prefs;
     private CompositeSubscription composite = new CompositeSubscription();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    private MainPresenter presenter = new MainPresenter(this);
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -48,20 +44,19 @@ public class MainActivity extends AppCompatActivity {
 
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
 
-        inject();
-        bindToPrefs();
+        presenter.injectView(this);
+        presenter.startListeningPrefs();
     }
 
-    @Override
-    protected void onDestroy() {
+    @Override protected void onDestroy() {
         super.onDestroy();
 
+        presenter.release();
         composite.clear();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
             if (!canDrawOverlays(this)) {
                 Toast.makeText(this,
@@ -79,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
             bStopService.setVisibility(View.VISIBLE);
             sbTransparency.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override public void updateTransparencyRepresentation(int transparencyPercentile) {
+        sbTransparency.setProgress(transparencyPercentile);
     }
 
     @OnClick(R.id.pick_file) void clickPickFile() {
@@ -106,42 +105,26 @@ public class MainActivity extends AppCompatActivity {
         stopService();
     }
 
-    private void bindToPrefs() {
-        final Subscription sub = prefs.getTransparency()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(v -> sbTransparency.setProgress((int) (v * 100)),
-                        Timber::e);
-        composite.add(sub);
-    }
-
     private void startService() {
         final String path = tvPath.getText().toString();
         final String noPath = getResources().getString(R.string.pick_a_file);
 
-        final Intent serviceIntent = new Intent(this, OverdrawService.class);
-
-        if (!path.equals(noPath)) {
-            serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
+        if (path.equals(noPath)) {
+            Toast.makeText(this, R.string.please_select_file, Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        startService(serviceIntent);
+        presenter.startService(this, path);
     }
 
     private void stopService() {
-        stopService(new Intent(this, OverdrawService.class));
-    }
-
-    private void inject() {
-        final App applicationContext = (App) getApplicationContext();
-        final Container diContainer = applicationContext.getContainer();
-
-        prefs = diContainer.getPrefs();
+        presenter.stopService(this);
     }
 
     private final SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
         @Override public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             if (b) {
-                prefs.updateTransparency(i);
+                presenter.updateTransparency(i);
             }
         }
 
