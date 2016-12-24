@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import org.redblaq.overdrawui.R;
 
 class OverdrawView extends View {
 
