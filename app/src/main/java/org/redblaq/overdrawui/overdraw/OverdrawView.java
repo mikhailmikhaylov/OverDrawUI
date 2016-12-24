@@ -7,14 +7,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-public class OverdrawView extends View {
+class OverdrawView extends View {
 
     private Context context;
     private WindowManager manager;
 
     private ImageView imageView;
 
-    public OverdrawView(Context context) {
+    OverdrawView(Context context) {
         super(context);
 
         this.context = context;

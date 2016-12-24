@@ -4,18 +4,17 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.f2prateek.rx.preferences.RxSharedPreferences;
 import com.squareup.picasso.Picasso;
 import org.redblaq.overdrawui.R;
-import org.redblaq.overdrawui.app.Constants;
+import org.redblaq.overdrawui.app.App;
+import org.redblaq.overdrawui.di.Container;
+import org.redblaq.overdrawui.repository.Prefs;
 import org.redblaq.overdrawui.ui.MainActivity;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -31,7 +30,17 @@ public class OverdrawService extends Service {
     private OverdrawView overdrawView;
     private ImageView overdrawImage;
 
-    private CompositeSubscription compositeSub = new CompositeSubscription();
+    private CompositeSubscription composite = new CompositeSubscription();
+
+    //@Inject
+    private Prefs prefs;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        inject();
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -44,16 +53,12 @@ public class OverdrawService extends Service {
 
         initOverdraw(filePath);
 
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        final RxSharedPreferences rxPrefs = RxSharedPreferences.create(prefs);
-
-        final Subscription sub = rxPrefs
-                .getFloat(Constants.PREFS_TRANSPARENCY)
-                .asObservable()
+        final Subscription sub = prefs
+                .getTransparency()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(v -> overdrawImage.setAlpha(v),
                         Timber::e);
-        compositeSub.add(sub);
+        composite.add(sub);
 
         final PendingIntent pendingIntent = createPendingIntent();
         final Notification notification = createNotification(pendingIntent);
@@ -68,7 +73,7 @@ public class OverdrawService extends Service {
         destroyOverdraw();
         stopForeground(true);
 
-        compositeSub.clear();
+        composite.clear();
         logServiceEnded();
     }
 
@@ -79,7 +84,6 @@ public class OverdrawService extends Service {
 
     // TODO Refactor
     private void initOverdraw(@Nullable String filePath) {
-
         overdrawView = new OverdrawView(this);
 
         overdrawImage = overdrawView.getImage();
@@ -108,6 +112,13 @@ public class OverdrawService extends Service {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(intent)
                 .build();
+    }
+
+    private void inject() {
+        final App applicationContext = (App) getApplicationContext();
+        final Container diContainer = applicationContext.getContainer();
+
+        prefs = diContainer.getPrefs();
     }
 
     private void logServiceStarted() {
