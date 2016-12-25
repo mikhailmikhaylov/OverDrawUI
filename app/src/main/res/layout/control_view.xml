@@ -34,7 +34,7 @@
             android:id="@+id/control_change_transparency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:visibility="visible" />
+            android:visibility="visible"/>
 
     </LinearLayout>
 </LinearLayout>
