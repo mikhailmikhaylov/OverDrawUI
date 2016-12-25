@@ -6,4 +6,6 @@
 
     <string name="notification_title">Overdraw UI</string>
     <string name="notification_body">Drawing the image</string>
+
+    <string name="please_select_file">Please pick a file</string>
 </resources>
