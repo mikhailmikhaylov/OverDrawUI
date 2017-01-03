@@ -4,18 +4,17 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.*;
-
-import com.tbruyelle.rxpermissions.RxPermissions;
-
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import org.redblaq.overdrawui.app.App;
-import org.redblaq.overdrawui.di.Container;
+import com.tbruyelle.rxpermissions.RxPermissions;
 import org.redblaq.overdrawui.R;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
@@ -32,12 +31,12 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
 
-    private MainPresenter presenter = new MainPresenter(this);
+    private MainPresenter presenter;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        presenter = new MainPresenter(this);
         ButterKnife.bind(this);
 
         rxPermissions = new RxPermissions(this);
@@ -83,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
     @OnClick(R.id.pick_file) void clickPickFile() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_FILE_REQUEST_CODE);
     }
 
     @OnClick(R.id.start) void clickStart() {
