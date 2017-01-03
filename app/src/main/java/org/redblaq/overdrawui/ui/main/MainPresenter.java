@@ -2,66 +2,49 @@ package org.redblaq.overdrawui.ui.main;
 
 import android.content.Context;
 import android.content.Intent;
+import com.arellomobile.mvp.InjectViewState;
+import com.arellomobile.mvp.MvpPresenter;
 import org.redblaq.overdrawui.app.App;
-import org.redblaq.overdrawui.di.Container;
 import org.redblaq.overdrawui.overdraw.OverdrawService;
 import org.redblaq.overdrawui.repository.Prefs;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
+
+import javax.inject.Inject;
 
 /**
  * Should be migrated to Moxy presenter
  */
-class MainPresenter {
+@InjectViewState
+public class MainPresenter extends MvpPresenter<MainView> {
 
-    private final Prefs prefs;
+    @Inject
+    Prefs prefs;
 
     private final CompositeSubscription composite = new CompositeSubscription();
 
-    private MainView view;
-
-    MainPresenter(Context context) {
-        final App applicationContext = (App) context.getApplicationContext();
-        final Container container = applicationContext.getContainer();
-
-        prefs = container.getPrefs();
+    MainPresenter() {
+        App.getAppComponent().inject(this);
     }
 
     void startListeningPrefs() {
-        final MainView view = getView();
-
-        final Subscription sub = prefs.getTransparency()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(v -> view.updateTransparencyRepresentation((int) (v * 100)),
+        final Subscription subscription = prefs.getTransparency()
+                .subscribe(v -> getViewState().updateTransparencyRepresentation((int) (v * 100)),
                         Timber::e);
-        composite.add(sub);
+        composite.add(subscription);
     }
 
     void updateTransparency(int percentile) {
         prefs.updateTransparency(percentile);
     }
 
-    void startService(Context context, String path) {
-        final Intent serviceIntent = new Intent(context, OverdrawService.class);
-        serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
-        context.startService(serviceIntent);
-    }
-
     void stopService(Context context) {
         context.stopService(new Intent(context, OverdrawService.class));
     }
 
-    void injectView(MainView view) {
-        this.view = view;
-    }
-
-    void release() {
+    @Override public void onDestroy() {
+        super.onDestroy();
         composite.clear();
-    }
-
-    private MainView getView() {
-        return view;
     }
 }

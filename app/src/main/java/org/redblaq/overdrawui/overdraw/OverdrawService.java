@@ -9,17 +9,17 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import com.squareup.picasso.Picasso;
 import org.redblaq.overdrawui.R;
 import org.redblaq.overdrawui.app.App;
-import org.redblaq.overdrawui.di.Container;
 import org.redblaq.overdrawui.repository.Prefs;
 import org.redblaq.overdrawui.ui.main.MainActivity;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
+
+import javax.inject.Inject;
 
 public class OverdrawService extends Service {
 
@@ -32,14 +32,13 @@ public class OverdrawService extends Service {
 
     private CompositeSubscription composite = new CompositeSubscription();
 
-    //@Inject
-    private Prefs prefs;
+    @Inject
+    Prefs prefs;
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        inject();
+        App.getAppComponent().inject(this);
     }
 
     @Override
@@ -72,7 +71,6 @@ public class OverdrawService extends Service {
     public void onDestroy() {
         destroyOverdraw();
         stopForeground(true);
-
         composite.clear();
         logServiceEnded();
     }
@@ -112,13 +110,6 @@ public class OverdrawService extends Service {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(intent)
                 .build();
-    }
-
-    private void inject() {
-        final App applicationContext = (App) getApplicationContext();
-        final Container diContainer = applicationContext.getContainer();
-
-        prefs = diContainer.getPrefs();
     }
 
     private void logServiceStarted() {

@@ -9,7 +9,9 @@ import org.redblaq.overdrawui.app.Constants;
 import rx.Observable;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class Prefs {
 
     private final SharedPreferences sharedPreferences;

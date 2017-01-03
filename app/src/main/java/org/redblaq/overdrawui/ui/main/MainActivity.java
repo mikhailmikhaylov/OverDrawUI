@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -14,14 +13,17 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import com.arellomobile.mvp.MvpAppCompatActivity;
+import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.tbruyelle.rxpermissions.RxPermissions;
 import org.redblaq.overdrawui.R;
+import org.redblaq.overdrawui.overdraw.OverdrawService;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
-public class MainActivity extends AppCompatActivity implements MainView {
+public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     @BindView(R.id.file_name) TextView tvPath;
     @BindView(R.id.start) Button bStartService;
@@ -31,26 +33,21 @@ public class MainActivity extends AppCompatActivity implements MainView {
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
 
-    private MainPresenter presenter;
+    @InjectPresenter
+    MainPresenter presenter;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        presenter = new MainPresenter(this);
         ButterKnife.bind(this);
 
         rxPermissions = new RxPermissions(this);
-
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
-
-        presenter.injectView(this);
         presenter.startListeningPrefs();
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
-
-        presenter.release();
         composite.clear();
     }
 
@@ -112,8 +109,9 @@ public class MainActivity extends AppCompatActivity implements MainView {
             Toast.makeText(this, R.string.please_select_file, Toast.LENGTH_SHORT).show();
             return;
         }
-
-        presenter.startService(this, path);
+        final Intent serviceIntent = new Intent(this, OverdrawService.class);
+        serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
+        startService(serviceIntent);
     }
 
     private void stopService() {
