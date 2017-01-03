@@ -1,56 +1,40 @@
-package org.redblaq.overdrawui;
+package org.redblaq.overdrawui.ui.main;
 
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 
-import com.f2prateek.rx.preferences.RxSharedPreferences;
 import com.tbruyelle.rxpermissions.RxPermissions;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import org.redblaq.overdrawui.app.App;
+import org.redblaq.overdrawui.di.Container;
+import org.redblaq.overdrawui.R;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.canDrawOverlays;
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.createRequiredPermissionIntent;
-import static org.redblaq.overdrawui.OverdrawPermissionsUtil.isPermissionDenied;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainView {
 
-    private final static int REQUIRED_PERMISSION_REQUEST_CODE = 2121;
-    private final static int PICK_FILE_REQUEST_CODE = 2122;
-
-    @Bind(R.id.file_name)
-    TextView tvPath;
-
-    @Bind(R.id.start)
-    Button bStartService;
-
-    @Bind(R.id.stop)
-    Button bStopService;
-
-    @Bind(R.id.transparency)
-    SeekBar sbTransparency;
+    @Bind(R.id.file_name) TextView tvPath;
+    @Bind(R.id.start) Button bStartService;
+    @Bind(R.id.stop) Button bStopService;
+    @Bind(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
-    private SharedPreferences prefs;
-    private RxSharedPreferences rxPrefs;
+    private CompositeSubscription composite = new CompositeSubscription();
 
-    private CompositeSubscription compositeSub = new CompositeSubscription();
+    private MainPresenter presenter = new MainPresenter(this);
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -58,24 +42,21 @@ public class MainActivity extends AppCompatActivity {
 
         rxPermissions = new RxPermissions(this);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        rxPrefs = RxSharedPreferences.create(prefs);
-
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
 
-        bindToPrefs();
+        presenter.injectView(this);
+        presenter.startListeningPrefs();
     }
 
-    @Override
-    protected void onDestroy() {
+    @Override protected void onDestroy() {
         super.onDestroy();
 
-        compositeSub.clear();
+        presenter.release();
+        composite.clear();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUIRED_PERMISSION_REQUEST_CODE) {
             if (!canDrawOverlays(this)) {
                 Toast.makeText(this,
@@ -95,15 +76,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnClick(R.id.pick_file)
-    void clickPickFile() {
+    @Override public void updateTransparencyRepresentation(int transparencyPercentile) {
+        sbTransparency.setProgress(transparencyPercentile);
+    }
+
+    @OnClick(R.id.pick_file) void clickPickFile() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
     }
 
-    @OnClick(R.id.start)
-    void clickStart() {
+    @OnClick(R.id.start) void clickStart() {
         clickStop();
         final Subscription sub = rxPermissions.request(Manifest.permission.SYSTEM_ALERT_WINDOW)
                 .subscribe(alertWindowPermissionGranted -> {
@@ -115,56 +98,38 @@ public class MainActivity extends AppCompatActivity {
                     }
                     startService();
                 }, error -> Toast.makeText(this, error.getMessage(), Toast.LENGTH_SHORT).show());
-        compositeSub.add(sub);
+        composite.add(sub);
     }
 
-    @OnClick(R.id.stop)
-    void clickStop() {
+    @OnClick(R.id.stop) void clickStop() {
         stopService();
-    }
-
-    private void bindToPrefs() {
-        final Subscription sub = rxPrefs
-                .getFloat(Constants.PREFS_TRANSPARENCY)
-                .asObservable()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(v -> sbTransparency.setProgress((int) (v * 100)),
-                        Timber::e);
-        compositeSub.add(sub);
     }
 
     private void startService() {
         final String path = tvPath.getText().toString();
         final String noPath = getResources().getString(R.string.pick_a_file);
 
-        final Intent serviceIntent = new Intent(this, OverdrawService.class);
-
-        if (!path.equals(noPath)) {
-            serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
+        if (path.equals(noPath)) {
+            Toast.makeText(this, R.string.please_select_file, Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        startService(serviceIntent);
+        presenter.startService(this, path);
     }
 
     private void stopService() {
-        stopService(new Intent(this, OverdrawService.class));
+        presenter.stopService(this);
     }
 
     private final SeekBar.OnSeekBarChangeListener seekBarListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            Timber.d("SEEKBAR: %d, %s", i, b);
+        @Override public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
             if (b) {
-                prefs.edit().putFloat(Constants.PREFS_TRANSPARENCY, i / 100f).apply();
+                presenter.updateTransparency(i);
             }
         }
 
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
+        @Override public void onStartTrackingTouch(SeekBar seekBar) {}
 
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-        }
+        @Override public void onStopTrackingTouch(SeekBar seekBar) {}
     };
 }
