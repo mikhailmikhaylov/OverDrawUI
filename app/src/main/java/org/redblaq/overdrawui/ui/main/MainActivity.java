@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.tbruyelle.rxpermissions.RxPermissions;
@@ -23,10 +23,10 @@ import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
 public class MainActivity extends AppCompatActivity implements MainView {
 
-    @Bind(R.id.file_name) TextView tvPath;
-    @Bind(R.id.start) Button bStartService;
-    @Bind(R.id.stop) Button bStopService;
-    @Bind(R.id.transparency) SeekBar sbTransparency;
+    @BindView(R.id.file_name) TextView tvPath;
+    @BindView(R.id.start) Button bStartService;
+    @BindView(R.id.stop) Button bStopService;
+    @BindView(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
