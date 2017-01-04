@@ -7,10 +7,6 @@ import org.redblaq.overdrawui.app.App;
 
 import javax.inject.Singleton;
 
-/**
- * @author Stanislav Shamilov
- */
-
 @Singleton
 @Module
 public class AppModule {

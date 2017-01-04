@@ -13,9 +13,6 @@ import timber.log.Timber;
 
 import javax.inject.Inject;
 
-/**
- * Should be migrated to Moxy presenter
- */
 @InjectViewState
 public class MainPresenter extends MvpPresenter<MainView> {
 
