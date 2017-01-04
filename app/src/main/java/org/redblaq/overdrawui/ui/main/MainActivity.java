@@ -4,54 +4,50 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
-
-import com.tbruyelle.rxpermissions.RxPermissions;
-
-import butterknife.Bind;
+import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import org.redblaq.overdrawui.app.App;
-import org.redblaq.overdrawui.di.Container;
+import com.arellomobile.mvp.MvpAppCompatActivity;
+import com.arellomobile.mvp.presenter.InjectPresenter;
+import com.tbruyelle.rxpermissions.RxPermissions;
 import org.redblaq.overdrawui.R;
+import org.redblaq.overdrawui.overdraw.OverdrawService;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
 
-public class MainActivity extends AppCompatActivity implements MainView {
+public class MainActivity extends MvpAppCompatActivity implements MainView {
 
-    @Bind(R.id.file_name) TextView tvPath;
-    @Bind(R.id.start) Button bStartService;
-    @Bind(R.id.stop) Button bStopService;
-    @Bind(R.id.transparency) SeekBar sbTransparency;
+    @BindView(R.id.file_name) TextView tvPath;
+    @BindView(R.id.start) Button bStartService;
+    @BindView(R.id.stop) Button bStopService;
+    @BindView(R.id.transparency) SeekBar sbTransparency;
 
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
 
-    private MainPresenter presenter = new MainPresenter(this);
+    @InjectPresenter
+    MainPresenter presenter;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         ButterKnife.bind(this);
 
         rxPermissions = new RxPermissions(this);
-
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
-
-        presenter.injectView(this);
         presenter.startListeningPrefs();
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
-
-        presenter.release();
         composite.clear();
     }
 
@@ -83,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements MainView {
     @OnClick(R.id.pick_file) void clickPickFile() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, PICK_FILE_REQUEST_CODE);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_FILE_REQUEST_CODE);
     }
 
     @OnClick(R.id.start) void clickStart() {
@@ -113,8 +109,9 @@ public class MainActivity extends AppCompatActivity implements MainView {
             Toast.makeText(this, R.string.please_select_file, Toast.LENGTH_SHORT).show();
             return;
         }
-
-        presenter.startService(this, path);
+        final Intent serviceIntent = new Intent(this, OverdrawService.class);
+        serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
+        startService(serviceIntent);
     }
 
     private void stopService() {

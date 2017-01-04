@@ -43,18 +43,37 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+
     compile 'com.android.support:appcompat-v7:25.0.1'
     testCompile 'junit:junit:4.12'
 
-    compile 'com.jakewharton:butterknife:7.0.1'
+    //View injection
+    compile 'com.jakewharton:butterknife:8.4.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
 
+    //Reactive extension
     compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'io.reactivex:rxjava:1.2.2'
+    compile 'io.reactivex:rxjava:1.2.4'
 
+    //Logging
     compile 'com.jakewharton.timber:timber:4.3.1'
 
+    //Reactive permission
     compile 'com.tbruyelle.rxpermissions:rxpermissions:0.9.0@aar'
+
+    //Reactive preferences
     compile 'com.f2prateek.rx.preferences:rx-preferences:1.0.2'
 
+    //Image loader
     compile 'com.squareup.picasso:picasso:2.5.2'
+
+    //Dependency injection
+    compile 'com.google.dagger:dagger:2.8'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
+
+
+    //MVP framework
+    compile 'com.arello-mobile:moxy:1.4.3'
+    annotationProcessor 'com.arello-mobile:moxy-compiler:1.4.3'
+    compile 'com.arello-mobile:moxy-app-compat:1.4.3'
 }
