@@ -11,16 +11,15 @@ import javax.inject.Singleton;
 @Module
 public class AppModule {
 
-    private App mApp;
+    private App app;
 
     public AppModule(App app) {
-        mApp = app;
+        this.app = app;
     }
 
     @Provides
     @Singleton
     Context provideApplicationContext() {
-        return mApp.getApplicationContext();
+        return app.getApplicationContext();
     }
-
 }

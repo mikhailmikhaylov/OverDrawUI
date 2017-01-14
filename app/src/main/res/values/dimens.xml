@@ -4,4 +4,5 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="control_view_size">48dp</dimen>
+    <dimen name="transparency_seekbar_width">160dp</dimen>
 </resources>
