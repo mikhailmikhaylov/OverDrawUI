@@ -102,7 +102,7 @@ class OverdrawView extends View {
                     return true;
 
                 case MotionEvent.ACTION_MOVE:
-                    controlParams.x = initX + (x - initTouchX);
+                    controlParams.x = initX - (x - initTouchX);
                     controlParams.y = initY + (y - initTouchY);
 
                     // Invalidate layout
