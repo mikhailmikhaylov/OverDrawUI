@@ -4,12 +4,13 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.view.*;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 import org.redblaq.overdrawui.R;
 
 class OverdrawControlView extends View {
 
-    private Context context;
     private WindowManager manager;
 
     private SelectionModel selectionModel = new SelectionModel();
@@ -17,16 +18,19 @@ class OverdrawControlView extends View {
     private WindowManager.LayoutParams controlParams;
 
     private ImageView imageView;
+    private View contentView;
     private ViewGroup root;
     private ImageView head;
     private SeekBar transparencyControl;
 
+    private Object imageViewTag = "image-view-tag";
+
     OverdrawControlView(Context context) {
         super(context);
 
-        this.context = context;
-        this.imageView = new ImageView(context);
-        imageView.setScaleType(ImageView.ScaleType.MATRIX);
+        this.contentView = createContentView(context, imageViewTag);
+        this.imageView = (ImageView) contentView.findViewWithTag(imageViewTag);
+
         this.root = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.control_view, null);
         this.head = (ImageView) root.findViewById(R.id.control_view_image);
         final ImageView transparencyButton = (ImageView) root.findViewById(R.id.control_change_transparency_button);
@@ -50,7 +54,7 @@ class OverdrawControlView extends View {
 
         selectionModel.selectItem(SelectionModel.SELECTION_TRANSPARENCY);
 
-        addToWindowManager();
+        addToWindowManager(context, this.contentView);
     }
 
     ImageView getImage() {
@@ -58,7 +62,7 @@ class OverdrawControlView extends View {
     }
 
     void destroy() {
-        manager.removeView(imageView);
+        manager.removeView(contentView);
         manager.removeView(root);
     }
 
@@ -71,12 +75,12 @@ class OverdrawControlView extends View {
         transparencyControl.setOnSeekBarChangeListener(listener);
     }
 
-    private void addToWindowManager() {
+    private void addToWindowManager(Context context, View contentView) {
         final WindowManager.LayoutParams imageParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, //FLAG_SPLIT_TOUCH to enable scroll
                 PixelFormat.TRANSLUCENT);
 
         controlParams = new WindowManager.LayoutParams(
@@ -90,11 +94,20 @@ class OverdrawControlView extends View {
         controlParams.gravity = Gravity.END;
 
         manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        manager.addView(imageView, imageParams);
+        manager.addView(contentView, imageParams);
         manager.addView(root, controlParams);
 
         // Support dragging the image view
         head.setOnTouchListener(controlTouchListener);
+    }
+
+    private View createContentView(Context context, Object imageViewTag) {
+        ScrollView scrollView = new ScrollView(context);
+        ImageView imageView = new ImageView(context);
+        imageView.setTag(imageViewTag);
+        imageView.setScaleType(ImageView.ScaleType.MATRIX);
+        scrollView.addView(imageView);
+        return scrollView;
     }
 
     private final OnTouchListener controlTouchListener = new OnTouchListener() {
