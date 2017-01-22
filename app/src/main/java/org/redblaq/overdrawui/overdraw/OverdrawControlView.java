@@ -3,10 +3,10 @@ package org.redblaq.overdrawui.overdraw;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.view.*;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
-import android.widget.Toast;
 import org.redblaq.overdrawui.R;
 
 class OverdrawControlView extends View {
@@ -19,6 +19,7 @@ class OverdrawControlView extends View {
 
     private ImageView imageView;
     private View contentView;
+    private CheckBox controlLockScroll;
     private ViewGroup root;
     private ImageView head;
     private SeekBar transparencyControl;
@@ -34,6 +35,7 @@ class OverdrawControlView extends View {
         this.root = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.control_view, null);
         this.head = (ImageView) root.findViewById(R.id.control_view_image);
         final ImageView transparencyButton = (ImageView) root.findViewById(R.id.control_change_transparency_button);
+        this.controlLockScroll = (CheckBox) root.findViewById(R.id.control_lock_scroll);
         this.transparencyControl = (SeekBar) root.findViewById(R.id.control_change_transparency);
         final ImageView scrollingButton = (ImageView) root.findViewById(R.id.control_move_button);
 
@@ -55,6 +57,11 @@ class OverdrawControlView extends View {
         selectionModel.selectItem(SelectionModel.SELECTION_TRANSPARENCY);
 
         addToWindowManager(context, this.contentView);
+        controlLockScroll.setOnCheckedChangeListener((btn, checked) -> {
+            destroy();
+            manager.addView(contentView, getLayoutParams(checked));
+            manager.addView(root, controlParams);
+        });
     }
 
     ImageView getImage() {
@@ -108,6 +115,26 @@ class OverdrawControlView extends View {
         imageView.setScaleType(ImageView.ScaleType.MATRIX);
         scrollView.addView(imageView);
         return scrollView;
+    }
+
+    private WindowManager.LayoutParams getLayoutParams(boolean isLocked) {
+        WindowManager.LayoutParams layoutParams = null;
+        if (isLocked) {
+            layoutParams = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
+                    PixelFormat.TRANSLUCENT);
+        } else {
+             layoutParams= new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    PixelFormat.TRANSLUCENT);
+        }
+        return layoutParams;
     }
 
     private final OnTouchListener controlTouchListener = new OnTouchListener() {
