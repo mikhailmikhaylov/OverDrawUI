@@ -26,6 +26,7 @@ class OverdrawControlView extends View {
 
         this.context = context;
         this.imageView = new ImageView(context);
+        imageView.setScaleType(ImageView.ScaleType.MATRIX);
         this.root = (ViewGroup) LayoutInflater.from(context).inflate(R.layout.control_view, null);
         this.head = (ImageView) root.findViewById(R.id.control_view_image);
         final ImageView transparencyButton = (ImageView) root.findViewById(R.id.control_change_transparency_button);
