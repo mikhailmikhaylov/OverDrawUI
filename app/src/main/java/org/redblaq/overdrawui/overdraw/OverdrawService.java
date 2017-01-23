@@ -2,44 +2,29 @@ package org.redblaq.overdrawui.overdraw;
 
 import android.app.Notification;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
+import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.squareup.picasso.Picasso;
 import org.redblaq.overdrawui.R;
-import org.redblaq.overdrawui.app.App;
-import org.redblaq.overdrawui.repository.Prefs;
+import org.redblaq.overdrawui.components.MvpService;
 import org.redblaq.overdrawui.ui.main.MainActivity;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
-import javax.inject.Inject;
-
-public class OverdrawService extends Service {
+public class OverdrawService extends MvpService implements OverdrawView {
 
     public static final String ARG_FILE_PATH = "file-path";
 
     private static final int FOREGROUND_ID = 999;
 
-    private OverdrawView overdrawView;
-    private ImageView overdrawImage;
+    private OverdrawControlView overdrawControlView;
 
-    private CompositeSubscription composite = new CompositeSubscription();
-
-    @Inject
-    Prefs prefs;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        App.getAppComponent().inject(this);
-    }
+    @InjectPresenter
+    OverdrawPresenter presenter;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -51,13 +36,7 @@ public class OverdrawService extends Service {
         }
 
         initOverdraw(filePath);
-
-        final Subscription sub = prefs
-                .getTransparency()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe(v -> overdrawImage.setAlpha(v),
-                        Timber::e);
-        composite.add(sub);
+        presenter.startListeningPrefs();
 
         final PendingIntent pendingIntent = createPendingIntent();
         final Notification notification = createNotification(pendingIntent);
@@ -69,9 +48,10 @@ public class OverdrawService extends Service {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
+
         destroyOverdraw();
         stopForeground(true);
-        composite.clear();
         logServiceEnded();
     }
 
@@ -80,22 +60,38 @@ public class OverdrawService extends Service {
         return null;
     }
 
-    // TODO Refactor
-    private void initOverdraw(@Nullable String filePath) {
-        overdrawView = new OverdrawView(this);
+    @Override public void updateTransparency(int percentage) {
+        overdrawControlView.updateTransparency(percentage);
+    }
 
-        overdrawImage = overdrawView.getImage();
+    private void initOverdraw(@Nullable String filePath) {
+        overdrawControlView = new OverdrawControlView(this);
+
+        final ImageView overdrawImage = overdrawControlView.getImage();
         Picasso.with(this).load(filePath).into(overdrawImage);
         overdrawImage.setAlpha(0.5f);
 
         final int px = (int) (24 * Resources.getSystem().getDisplayMetrics().density);
 
+        // toolbar height fix for proper screenshot displaying
         overdrawImage.setPadding(0, -px, 0, 0);
+
+        overdrawControlView.setTransparencyUpdateListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean isInitiateByUser) {
+                if (isInitiateByUser) {
+                    presenter.updateTransparency(progress);
+                }
+            }
+
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
     }
 
     private void destroyOverdraw() {
-        overdrawView.destroy();
-        overdrawView = null;
+        overdrawControlView.destroy();
+        overdrawControlView = null;
     }
 
     private PendingIntent createPendingIntent() {

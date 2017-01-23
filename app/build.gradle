@@ -71,7 +71,6 @@ dependencies {
     compile 'com.google.dagger:dagger:2.8'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
 
-
     //MVP framework
     compile 'com.arello-mobile:moxy:1.4.3'
     annotationProcessor 'com.arello-mobile:moxy-compiler:1.4.3'

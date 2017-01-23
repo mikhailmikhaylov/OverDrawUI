@@ -1,11 +1,8 @@
-project name: Overdraw UI
+I want to pick multiple images to display.
+I want image to be drawn over my screen. I can edit the transparency and move it.
+I want to edit transparency while using the application.
+I want to move the image from anywhere
+I want to change the image via arrows and special view mode, where I can see all the pkreviews and select from them
+I want to scroll image, as it can be three to five screens high
 
-application name?: CheckUI
 
-application purpose: User can check if the application UI is the same as was intended while designing. To do so
-he can see the semi-transparent version of expected design, and the examining application on the background. The
-application is fully operable
-
-terms:
- - container - manual di box
- - composite - Composite Rx Subscription

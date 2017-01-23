@@ -17,8 +17,7 @@ public class Prefs {
     private final SharedPreferences sharedPreferences;
     private RxSharedPreferences rxPrefs;
 
-    @Inject
-    public Prefs(Context context) {
+    @Inject Prefs(Context context) {
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         rxPrefs = RxSharedPreferences.create(sharedPreferences);
     }
@@ -27,12 +26,12 @@ public class Prefs {
         updateTransparency(percentile / 100f);
     }
 
-    public void updateTransparency(float value) {
-        sharedPreferences.edit().putFloat(Constants.PREFS_TRANSPARENCY, value).apply();
-    }
-
     public Observable<Float> getTransparency() {
         return rxPrefs.getFloat(Constants.PREFS_TRANSPARENCY)
                 .asObservable();
+    }
+
+    private void updateTransparency(float value) {
+        sharedPreferences.edit().putFloat(Constants.PREFS_TRANSPARENCY, value).apply();
     }
 }
