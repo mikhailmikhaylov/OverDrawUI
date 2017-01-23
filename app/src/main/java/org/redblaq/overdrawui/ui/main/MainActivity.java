@@ -24,9 +24,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
-import timber.log.Timber;
 
-import static android.R.attr.path;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FILE_REQUEST_CODE;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FOLDER_REQUEST_CODE;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.REQUIRED_PERMISSION_REQUEST_CODE;
@@ -83,8 +81,6 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
             sbTransparency.setVisibility(View.VISIBLE);
         } else if (requestCode == PICK_FOLDER_REQUEST_CODE && resultCode == RESULT_OK) {
             final ClipData clipData = data.getClipData();
-            clipData.
-            Timber.d(path);
         }
     }
 
