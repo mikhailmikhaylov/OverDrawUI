@@ -46,7 +46,9 @@ class OverdrawControlView extends View {
                     break;
                 }
                 case R.id.control_move_button: {
-                    selectionModel.selectItem(SelectionModel.SELECTION_TRANSPARENCY);
+                    boolean isLocked = controlLockScroll.isChecked();
+                    controlLockScroll.setChecked(!isLocked);
+                    manager.updateViewLayout(contentView, getContentViewLayoutParams(controlLockScroll.isChecked()));
                     break;
                 }
             }
@@ -57,11 +59,6 @@ class OverdrawControlView extends View {
         selectionModel.selectItem(SelectionModel.SELECTION_TRANSPARENCY);
 
         addToWindowManager(context, this.contentView);
-        controlLockScroll.setOnCheckedChangeListener((btn, checked) -> {
-            destroy();
-            manager.addView(contentView, getLayoutParams(checked));
-            manager.addView(root, controlParams);
-        });
     }
 
     ImageView getImage() {
@@ -117,24 +114,14 @@ class OverdrawControlView extends View {
         return scrollView;
     }
 
-    private WindowManager.LayoutParams getLayoutParams(boolean isLocked) {
-        WindowManager.LayoutParams layoutParams = null;
-        if (isLocked) {
-            layoutParams = new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_SPLIT_TOUCH,
-                    PixelFormat.TRANSLUCENT);
-        } else {
-             layoutParams= new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.TYPE_PHONE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    PixelFormat.TRANSLUCENT);
-        }
-        return layoutParams;
+    private WindowManager.LayoutParams getContentViewLayoutParams(boolean isLocked) {
+        int touchFlag = isLocked ? WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE : WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
+        return new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                touchFlag,
+                PixelFormat.TRANSLUCENT);
     }
 
     private final OnTouchListener controlTouchListener = new OnTouchListener() {

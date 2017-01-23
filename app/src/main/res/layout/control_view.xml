@@ -35,6 +35,8 @@
         android:id="@+id/control_lock_scroll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:enabled="true"
+        android:clickable="false"
         android:text="Lock"/>
 
     <LinearLayout
