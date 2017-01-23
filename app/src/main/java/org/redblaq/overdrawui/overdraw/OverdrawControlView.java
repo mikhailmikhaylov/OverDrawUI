@@ -13,7 +13,7 @@ class OverdrawControlView extends View {
 
     private WindowManager manager;
 
-    private SelectionModel selectionModel = new SelectionModel();
+    private final SelectionModel selectionModel = new SelectionModel();
 
     private WindowManager.LayoutParams controlParams;
 
@@ -24,11 +24,10 @@ class OverdrawControlView extends View {
     private ImageView head;
     private SeekBar transparencyControl;
 
-    private Object imageViewTag = "image-view-tag";
-
     OverdrawControlView(Context context) {
         super(context);
 
+        Object imageViewTag = "image-view-tag";
         this.contentView = createContentView(context, imageViewTag);
         this.imageView = (ImageView) contentView.findViewWithTag(imageViewTag);
 
@@ -46,7 +45,7 @@ class OverdrawControlView extends View {
                     break;
                 }
                 case R.id.control_move_button: {
-                    boolean isLocked = controlLockScroll.isChecked();
+                    final boolean isLocked = controlLockScroll.isChecked();
                     controlLockScroll.setChecked(!isLocked);
                     manager.updateViewLayout(contentView, getContentViewLayoutParams(controlLockScroll.isChecked()));
                     break;
@@ -106,8 +105,8 @@ class OverdrawControlView extends View {
     }
 
     private View createContentView(Context context, Object imageViewTag) {
-        ScrollView scrollView = new ScrollView(context);
-        ImageView imageView = new ImageView(context);
+        final ScrollView scrollView = new ScrollView(context);
+        final ImageView imageView = new ImageView(context);
         imageView.setTag(imageViewTag);
         imageView.setScaleType(ImageView.ScaleType.MATRIX);
         scrollView.addView(imageView);
@@ -115,7 +114,7 @@ class OverdrawControlView extends View {
     }
 
     private WindowManager.LayoutParams getContentViewLayoutParams(boolean isLocked) {
-        int touchFlag = isLocked ? WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE : WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
+        final int touchFlag = isLocked ? WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE : WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
         return new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -129,8 +128,8 @@ class OverdrawControlView extends View {
         private int initTouchX, initTouchY;
 
         @Override public boolean onTouch(View v, MotionEvent event) {
-            int x = (int) event.getRawX();
-            int y = (int) event.getRawY();
+            final int x = (int) event.getRawX();
+            final int y = (int) event.getRawY();
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
