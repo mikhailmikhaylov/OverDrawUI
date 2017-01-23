@@ -77,9 +77,9 @@ public class OverdrawService extends MvpService implements OverdrawView {
         overdrawImage.setPadding(0, -px, 0, 0);
 
         overdrawControlView.setTransparencyUpdateListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                if (b) {
-                    presenter.updateTransparency(i);
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean isInitiateByUser) {
+                if (isInitiateByUser) {
+                    presenter.updateTransparency(progress);
                 }
             }
 

@@ -13,25 +13,25 @@
 
     <LinearLayout
         android:id="@+id/control_view_controls_container"
-        android:orientation="horizontal"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <ImageView
-            android:src="@android:drawable/btn_star_big_on"
             android:id="@+id/control_change_transparency_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/btn_star_big_on"/>
 
         <ImageView
-            android:src="@android:drawable/btn_star_big_on"
             android:id="@+id/control_move_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/btn_star_big_on"/>
 
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/control_view_data_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,8 +40,6 @@
         <SeekBar
             android:id="@+id/control_change_transparency"
             android:layout_width="@dimen/transparency_seekbar_width"
-            android:layout_height="wrap_content"
-            android:visibility="visible"/>
-
-    </LinearLayout>
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
 </LinearLayout>
