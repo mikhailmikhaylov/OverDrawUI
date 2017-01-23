@@ -9,4 +9,5 @@
 
     <string name="please_select_file">Please pick a file</string>
     <string name="lock">Lock</string>
+    <string name="pick_a_folder">Pick a folder</string>
 </resources>

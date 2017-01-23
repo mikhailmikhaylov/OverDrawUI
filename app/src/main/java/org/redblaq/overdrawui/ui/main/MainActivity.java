@@ -2,6 +2,7 @@ package org.redblaq.overdrawui.ui.main;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.ClipData;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,18 +11,28 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+
 import com.arellomobile.mvp.MvpAppCompatActivity;
 import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.tbruyelle.rxpermissions.RxPermissions;
+
 import org.redblaq.overdrawui.R;
 import org.redblaq.overdrawui.overdraw.OverdrawService;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
+import timber.log.Timber;
 
-import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.*;
+import static android.R.attr.path;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FILE_REQUEST_CODE;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FOLDER_REQUEST_CODE;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.REQUIRED_PERMISSION_REQUEST_CODE;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.canDrawOverlays;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.createRequiredPermissionIntent;
+import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.isPermissionDenied;
 
 public class MainActivity extends MvpAppCompatActivity implements MainView {
 
@@ -29,6 +40,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     @BindView(R.id.start) Button bStartService;
     @BindView(R.id.stop) Button bStopService;
     @BindView(R.id.transparency) SeekBar sbTransparency;
+    @BindView(R.id.btn_pick_folder) Button btnPickFolder;
 
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
@@ -69,6 +81,10 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
             bStartService.setVisibility(View.VISIBLE);
             bStopService.setVisibility(View.VISIBLE);
             sbTransparency.setVisibility(View.VISIBLE);
+        } else if (requestCode == PICK_FOLDER_REQUEST_CODE && resultCode == RESULT_OK) {
+            final ClipData clipData = data.getClipData();
+            clipData.
+            Timber.d(path);
         }
     }
 
@@ -101,6 +117,20 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         stopService();
     }
 
+    @OnClick(R.id.btn_pick_folder) void pickFolder() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, PICK_FOLDER_REQUEST_CODE);
+        } else {
+            showMessage("No file managers found. Try to install a new one.");
+        }
+    }
+
+
+
     private void startService() {
         final String path = tvPath.getText().toString();
         final String noPath = getResources().getString(R.string.pick_a_file);
@@ -129,4 +159,8 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
         @Override public void onStopTrackingTouch(SeekBar seekBar) {}
     };
+
+    private void showMessage(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
 }

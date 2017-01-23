@@ -5,4 +5,9 @@
 
     <dimen name="control_view_size">48dp</dimen>
     <dimen name="transparency_seekbar_width">160dp</dimen>
+
+    <dimen name="small">8dp</dimen>
+    <dimen name="medium">16dp</dimen>
+    <dimen name="big">24dp</dimen>
+    <dimen name="large">32dp</dimen>
 </resources>
