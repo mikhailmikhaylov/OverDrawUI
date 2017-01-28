@@ -2,7 +2,6 @@ package org.redblaq.overdrawui.ui.main;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.content.ClipData;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,11 +21,11 @@ import org.redblaq.overdrawui.overdraw.OverdrawService;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import ir.sohreco.androidfilechooser.FileChooserDialog;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FILE_REQUEST_CODE;
-import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.PICK_FOLDER_REQUEST_CODE;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.REQUIRED_PERMISSION_REQUEST_CODE;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.canDrawOverlays;
 import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.createRequiredPermissionIntent;
@@ -42,6 +41,7 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
 
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
+    private FileChooserDialog fileChooserDialog;
 
     @InjectPresenter
     MainPresenter presenter;
@@ -79,8 +79,6 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
             bStartService.setVisibility(View.VISIBLE);
             bStopService.setVisibility(View.VISIBLE);
             sbTransparency.setVisibility(View.VISIBLE);
-        } else if (requestCode == PICK_FOLDER_REQUEST_CODE && resultCode == RESULT_OK) {
-            final ClipData clipData = data.getClipData();
         }
     }
 
@@ -114,15 +112,10 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
     }
 
     @OnClick(R.id.btn_pick_folder) void pickFolder() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, PICK_FOLDER_REQUEST_CODE);
-        } else {
-            showMessage("No file managers found. Try to install a new one.");
+        if (fileChooserDialog == null) {
+            fileChooserDialog = new FileChooserDialog.Builder(FileChooserDialog.ChooserType.DIRECTORY_CHOOSER, presenter).build();
         }
+        fileChooserDialog.show(getSupportFragmentManager(), null);
     }
 
 

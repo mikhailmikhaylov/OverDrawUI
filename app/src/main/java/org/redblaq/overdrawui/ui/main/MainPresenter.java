@@ -2,19 +2,23 @@ package org.redblaq.overdrawui.ui.main;
 
 import android.content.Context;
 import android.content.Intent;
+
 import com.arellomobile.mvp.InjectViewState;
 import com.arellomobile.mvp.MvpPresenter;
+
 import org.redblaq.overdrawui.app.App;
 import org.redblaq.overdrawui.overdraw.OverdrawService;
 import org.redblaq.overdrawui.repository.Prefs;
+
+import javax.inject.Inject;
+
+import ir.sohreco.androidfilechooser.FileChooserDialog;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 import timber.log.Timber;
 
-import javax.inject.Inject;
-
 @InjectViewState
-public class MainPresenter extends MvpPresenter<MainView> {
+public class MainPresenter extends MvpPresenter<MainView> implements FileChooserDialog.ChooserListener {
 
     @Inject
     Prefs prefs;
@@ -43,5 +47,10 @@ public class MainPresenter extends MvpPresenter<MainView> {
     @Override public void onDestroy() {
         super.onDestroy();
         composite.clear();
+    }
+
+    @Override
+    public void onSelect(String path) {
+
     }
 }
