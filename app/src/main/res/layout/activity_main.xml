@@ -8,30 +8,18 @@
     android:padding="@dimen/medium"
     tools:context="org.redblaq.overdrawui.ui.main.MainActivity">
 
-    <TextView
-        android:id="@+id/file_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/pick_a_file" />
-
     <Button
         android:id="@+id/pick_file"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/pick_a_file" />
 
-    <TextView
-        android:id="@+id/folder_name"
-        android:layout_marginTop="@dimen/big"
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/item_previews_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/pick_a_folder"/>
-
-    <Button
-        android:id="@+id/btn_pick_folder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pick_a_folder"/>
+        android:layout_marginTop="@dimen/small"/>
 
     <Button
         android:id="@+id/start"

@@ -2,13 +2,15 @@ package org.redblaq.overdrawui.ui.main;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.ClipData;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arellomobile.mvp.MvpAppCompatActivity;
@@ -16,12 +18,15 @@ import com.arellomobile.mvp.presenter.InjectPresenter;
 import com.tbruyelle.rxpermissions.RxPermissions;
 
 import org.redblaq.overdrawui.R;
+import org.redblaq.overdrawui.model.ImagePreview;
 import org.redblaq.overdrawui.overdraw.OverdrawService;
+import org.redblaq.overdrawui.ui.adapter.ImagePreviewAdapter;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import ir.sohreco.androidfilechooser.FileChooserDialog;
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
@@ -33,18 +38,17 @@ import static org.redblaq.overdrawui.util.OverdrawPermissionsUtil.isPermissionDe
 
 public class MainActivity extends MvpAppCompatActivity implements MainView {
 
-    @BindView(R.id.file_name) TextView tvPath;
     @BindView(R.id.start) Button bStartService;
     @BindView(R.id.stop) Button bStopService;
     @BindView(R.id.transparency) SeekBar sbTransparency;
-    @BindView(R.id.btn_pick_folder) Button btnPickFolder;
+    @BindView(R.id.item_previews_list) RecyclerView itemPreviewList;
 
     private RxPermissions rxPermissions;
     private CompositeSubscription composite = new CompositeSubscription();
-    private FileChooserDialog fileChooserDialog;
 
     @InjectPresenter
     MainPresenter presenter;
+    private ImagePreviewAdapter imagePreviewAdapter;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,12 +58,15 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         rxPermissions = new RxPermissions(this);
         sbTransparency.setOnSeekBarChangeListener(seekBarListener);
         presenter.startListeningPrefs();
+        initItemsList();
     }
+
 
     @Override protected void onDestroy() {
         super.onDestroy();
         composite.clear();
     }
+
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -74,8 +81,8 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
                 startService();
             }
         } else if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            final String path = data.getDataString();
-            tvPath.setText(path);
+            final ClipData clipData = data.getClipData();
+            presenter.setClipData(clipData);
             bStartService.setVisibility(View.VISIBLE);
             bStopService.setVisibility(View.VISIBLE);
             sbTransparency.setVisibility(View.VISIBLE);
@@ -86,10 +93,18 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         sbTransparency.setProgress(transparencyPercentile);
     }
 
+    @Override
+    public void showImagePreviews(List<ImagePreview> imagePreviews) {
+        if (imagePreviewAdapter != null) {
+            imagePreviewAdapter.addItems(imagePreviews);
+        }
+    }
+
     @OnClick(R.id.pick_file) void clickPickFile() {
         final Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_FILE_REQUEST_CODE);
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.pick_file_title)), PICK_FILE_REQUEST_CODE);
     }
 
     @OnClick(R.id.start) void clickStart() {
@@ -111,23 +126,20 @@ public class MainActivity extends MvpAppCompatActivity implements MainView {
         stopService();
     }
 
-    @OnClick(R.id.btn_pick_folder) void pickFolder() {
-        if (fileChooserDialog == null) {
-            fileChooserDialog = new FileChooserDialog.Builder(FileChooserDialog.ChooserType.DIRECTORY_CHOOSER, presenter).build();
-        }
-        fileChooserDialog.show(getSupportFragmentManager(), null);
+    private void initItemsList() {
+        imagePreviewAdapter = new ImagePreviewAdapter();
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        itemPreviewList.setLayoutManager(layoutManager);
+        itemPreviewList.setAdapter(imagePreviewAdapter);
     }
 
-
-
     private void startService() {
-        final String path = tvPath.getText().toString();
-        final String noPath = getResources().getString(R.string.pick_a_file);
-
-        if (path.equals(noPath)) {
+        ImagePreview imagePreview = imagePreviewAdapter.getItem(0);
+        if (imagePreview == null) {
             Toast.makeText(this, R.string.please_select_file, Toast.LENGTH_SHORT).show();
             return;
         }
+        final String path = imagePreview.getUri();
         final Intent serviceIntent = new Intent(this, OverdrawService.class);
         serviceIntent.putExtra(OverdrawService.ARG_FILE_PATH, path);
         startService(serviceIntent);
